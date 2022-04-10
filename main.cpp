@@ -68,8 +68,10 @@ int main(){
 
   for (it = 0; it < 5;  it++){
     try {
-      path.push(Edge(x[it], y[it], x[it+1], y[it+1]));
-      throw it;
+      if (it == 4){
+	throw it;
+      }
+	path.push(Edge(x[it], y[it], x[it+1], y[it+1]));
     }
     catch (long double it){
       path.push(Edge(x[it], y[it], x[0], y[0]));
