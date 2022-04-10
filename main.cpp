@@ -5,19 +5,22 @@
 #include <algorithm>
 #include <cmath>
 
-#define INT_MAX = 2147483647
+#define INT_MAX  2147483647
 
 using namespace std;
 
 class point{
 public:
   long double x, y;
-  point& operator=(const point& right){
+  point& operator=(const  point& right){
     this->x = right.x;
     this->y = right.y;
     return *this;
   }
 };
+bool operator<(const point& l, const point& r){
+  return l.x < r.x;  // порядок вершин в мапе нам не важен
+}
 
 class Edge {
 private:
@@ -49,7 +52,7 @@ public:
 
 int main(){
   
-  int  n = 7, it = 0, jt = 0, kt = 0;
+  int  n = 15, it = 0, jt = 0, kt = 0;
   long double L = 0;
   vector<long double> x(n), y(n);
   vector<point> allVerts(n);
@@ -59,7 +62,7 @@ int main(){
 
     point A;
     A.x = x[it]; A.y = y[it];
-    allVerts.push_back(A);
+    allVerts[it] = A;
   }
 
 
@@ -95,42 +98,66 @@ int main(){
 
   
   long double Lnew = 0;
-  vector<Edge> poped(3)
-  for (it = 0; it < n - n%3; it++) {
+  vector<Edge> poped(n);
+  for (it = 3; it < n - n % 3; it += 3) {
+        //cout << "Starting new cicle. it " << it << endl;
 
-    for (jt = 0; jt < 3; jt++){
-      const Edge maxEdge = path.top();    // Берем наибольшее ребро
-      path.pop();                         // Удаляем его
-      poped[jt] = maxEdge;
-      // Вершинам, образующим его, понижаем число инцидентных ребер на один
-      status[poped[jt]].A_value()--;
-      status[poped[jt]].B_value()--;
-      L -= poped[jt].dist_value();   // Уменьшаем длину пути
+        // удалим ребра [0; it)
+        for (jt = 0; jt < it; jt++) {
+            const Edge maxEdge = path.top();    // берем наибольшее ребро
+            path.pop();                         // удаляем его
+            poped[jt] = maxEdge;
+            //cout << "deleted " << poped[jt].dist_value() << endl;
+
+            // вершинам, образующим его, понижаем число инцидентных ребер на один
+            status[poped[jt].A_value()]--;
+            status[poped[jt].B_value()]--;
+            L -= poped[jt].dist_value();   // уменьшаем длину пути
+        }
+
+        // вернем ребра [0; it - 3)
+        for (jt = 0; jt < it - 3; jt++) {
+            path.push(poped[jt]);
+            //cout << poped[jt].dist_value() << " returns" << endl;
+
+            // вершинам, образующим возвращенное ребро, повышаем число инцидентных ребер на один
+            status[poped[jt].A_value()]++;
+            status[poped[jt].B_value()]++;
+            L += poped[jt].dist_value();   // увеличиваем длину пути
+        }
+
+         //теперь рассматриваются только вершины, образующие три удаленных ребра
+         //
+         // ищем новые ребра три раза
+        for (int k = 0; k < 3; k++) {
+            long double l = INT_MAX;
+            long double jtOfMin = -1, ktOfMin = -1;
+            for (jt = 0; jt < n - 1; jt++) {
+                for (kt = jt + 1; kt < n; kt++) {
+                    // если у каждой из двух вершин не два инцидентных ребра
+                    if (status[allVerts[jt]] != 2 && status[allVerts[kt]] != 2) {
+                        Edge e(allVerts[jt], allVerts[kt]);
+                        // есть шанс добавить ребро, образованное этими вершинами
+                        //cout << "maybe we will push " << e.dist_value() << endl;
+                        if (e.dist_value() < l) {                                   // Ищем наименьшее
+                            l = e.dist_value();
+                            jtOfMin = jt;
+                            ktOfMin = kt;
+                        }
+                    }
+                }
+            }
+            // нашли индексы вершин, образующих наименьшее ребро
+            // проводим его, значит число инцидентных ребер дляэтих вершин увеличено на 1
+            status[allVerts[jtOfMin]]++;
+            status[allVerts[ktOfMin]]++;
+            Edge edge2add(allVerts[jtOfMin], allVerts[ktOfMin]);
+            // добавляем ребро в путь
+            path.push(edge2add);
+            //cout << "pushed " << edge2add.dist_value() << " current it is " << it << endl;
+            L += l; // увеличиваем длину пути
+        }
+        //cout << "now L is " << L << endl;
     }
-
-    for (int k = 0; k < 3; k++){
-      long double l = INT_MAX;
-      long double jtOfMin = -1, ktOfMin = -1;
-
-      // Просто повторим операцию три раза, пока что идейно криво по ключам
-      for (jt = 0; jt < n - 1; jt++){
-	for (kt = jt + 1; kt < n; kt++){
-	  if (status[allVerts[jt]] != 2 && status[allVerts[kt]] != 2) { // Если у пары вершин не два инцидентных ребра
-	    Edge e(allVerts[jt], allVerts[kt]);                         // расмотрим ребро между ними
-	    if (e.dist_value() < l) {                                   // Ищем наименьшее 
-	      l = e.dist_value();           
-	      jtOfMin = jt;
-	      ktOfMin = kt;
-	    }
-	  }
-	}
-      }
-      status[allVerts[jtOfMin]]++;
-      status[allVerts[ktOfMin]]++;
-      Edge edge2add(allVerts[jtOfMin], allVerts[ktOfMin]);
-      path.push(edge2add);
-      L += l;
-    }
-  }
-  cout << L;   //посмотрим насколько хорошо работает сейчас
+    cout << L;   //посмотрим насколько хорошо работает сейчас
 }
