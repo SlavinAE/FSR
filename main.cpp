@@ -48,13 +48,15 @@ int main(){
   //  }
   //  catch(...){
   //    L += dist(Data[it], Data[0]);
-  vector<double long> x(5), y(5);
+  vector<long double> x(5), y(5);
   long double it = 0;
 
   for(it = 0; it < 5; it++) {
     x[it] = 3 * pow(it, 2);
     y[it] = 4 * pow(it, 2);
+    cout << x[it] << " " << y[it] << endl;
   }
+  cout << endl;
 
   using my_value_t = Edge;
   using my_container_t = vector<Edge>;
@@ -67,8 +69,9 @@ int main(){
   for (it = 0; it < 5;  it++){
     try {
       path.push(Edge(x[it], y[it], x[it+1], y[it+1]));
+      throw it;
     }
-    catch (...){
+    catch (long double it){
       path.push(Edge(x[it], y[it], x[0], y[0]));
     }
   }
