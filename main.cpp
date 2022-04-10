@@ -1,16 +1,26 @@
 #include <iostream>
 #include <vector>
 #include <queue>
+#include <map>
 #include <algorithm>
 #include <cmath>
 
+#define INT_MAX = 2147483647
+
 using namespace std;
+
+class point{
+public:
+  long double x, y;
+  point& operator=(const point& right){
+    this->x = right.x;
+    this->y = right.y;
+    return *this;
+  }
+};
 
 class Edge {
 private:
-  struct point {
-    long double x, y;
-  };
   point A, B;
 
   long double dist(point A, point B){
@@ -18,6 +28,14 @@ private:
   }
 
 public:
+  point A_value() {
+    return A;
+  }
+
+  point B_value() {
+    return B;
+  }
+  
   long double dist_value(){
     return dist(A, B);
   }
@@ -26,37 +44,24 @@ public:
     this->A.x = Ax; this->A.y = Ay;
     this->B.x = Bx; this->B.y = By;
   }
+  Edge(point _A, point _B) { A = _A; B = _B;}
 };
-
-//vector<point> readData(){
-  // vector<point> Data;
-  // ...
-  // return Data
-//}
 
 int main(){
   
-  // vector<point> Data = readData();    // массив точек
-  // long int n = Data.size();           // число точек
-  // double long L = 0;                  // длина пути
-
-  // Первое приближение решения задачи - соединение точек по порядку в векторе Data
-  // int it = 0;
-  // for (it; it < n; it++) {
-  //  try {
-  //    L += dist(Data[it], Data[it+1]);
-  //  }
-  //  catch(...){
-  //    L += dist(Data[it], Data[0]);
-  vector<long double> x(5), y(5);
-  long double it = 0;
-
-  for(it = 0; it < 5; it++) {
+  int  n = 7, it = 0, jt = 0, kt = 0;
+  long double L = 0;
+  vector<long double> x(n), y(n);
+  vector<point> allVerts(n);
+  for(it = 0; it < n; it++) {
     x[it] = 3 * pow(it, 2);
     y[it] = 4 * pow(it, 2);
-    cout << x[it] << " " << y[it] << endl;
+
+    point A;
+    A.x = x[it]; A.y = y[it];
+    allVerts.push_back(A);
   }
-  cout << endl;
+
 
   using my_value_t = Edge;
   using my_container_t = vector<Edge>;
@@ -65,23 +70,67 @@ int main(){
 		 };
 
   priority_queue<my_value_t, my_container_t, decltype(my_comp)> path{ my_comp};
-
-  for (it = 0; it < 5;  it++){
+  map<point, int> status;
+  
+  for (it = 0; it < n;  it++){ 
     try {
-      if (it == 4){
+      if (it == n-1){
 	throw it;
       }
-	path.push(Edge(x[it], y[it], x[it+1], y[it+1]));
+      Edge e(x[it], y[it], x[it+1], y[it+1]);
+      path.push(e);
+      status[e.A_value()] = 2;
+      status[e.B_value()] = 2;
+      L += e.dist_value();
     }
     catch (long double it){
-      path.push(Edge(x[it], y[it], x[0], y[0]));
+      Edge e(x[it], y[it], x[0], y[0]);
+      path.push(e);
+      status[e.A_value()] = 2;
+      status[e.B_value()] = 2;
+      L += e.dist_value();
     }
   }
 
-  for (it = 0; it < 5; it++){
-    const Edge maxEdge = path.top();
-    path.pop();
-    Edge e = maxEdge;
-    cout << e.dist_value() << endl;
+
+  
+  long double Lnew = 0;
+  vector<Edge> poped(3)
+  for (it = 0; it < n - n%3; it++) {
+
+    for (jt = 0; jt < 3; jt++){
+      const Edge maxEdge = path.top();    // Берем наибольшее ребро
+      path.pop();                         // Удаляем его
+      poped[jt] = maxEdge;
+      // Вершинам, образующим его, понижаем число инцидентных ребер на один
+      status[poped[jt]].A_value()--;
+      status[poped[jt]].B_value()--;
+      L -= poped[jt].dist_value();   // Уменьшаем длину пути
+    }
+
+    for (int k = 0; k < 3; k++){
+      long double l = INT_MAX;
+      long double jtOfMin = -1, ktOfMin = -1;
+
+      // Просто повторим операцию три раза, пока что идейно криво по ключам
+      for (jt = 0; jt < n - 1; jt++){
+	for (kt = jt + 1; kt < n; kt++){
+	  if (status[allVerts[jt]] != 2 && status[allVerts[kt]] != 2) { // Если у пары вершин не два инцидентных ребра
+	    Edge e(allVerts[jt], allVerts[kt]);                         // расмотрим ребро между ними
+	    if (e.dist_value() < l) {                                   // Ищем наименьшее 
+	      l = e.dist_value();           
+	      jtOfMin = jt;
+	      ktOfMin = kt;
+	    }
+	  }
+	}
+      }
+      status[allVerts[jtOfMin]]++;
+      status[allVerts[ktOfMin]]++;
+      Edge edge2add(allVerts[jtOfMin], allVerts[ktOfMin]);
+      path.push(edge2add);
+      L += l;
+    }
   }
+  cout << L;   //посмотрим насколько хорошо работает сейчас
 }
