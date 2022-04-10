@@ -2,6 +2,7 @@
 #include <vector>
 #include <queue>
 #include <algorithm>
+#include <cmath>
 
 using namespace std;
 
@@ -21,7 +22,7 @@ public:
     return dist(A, B);
   }
 
-  Edge(long double Ax, long doule Ay, long double Bx, long double By) {
+  Edge(long double Ax, long double Ay, long double Bx, long double By) {
     this->A.x = Ax; this->A.y = Ay;
     this->B.x = Bx; this->B.y = By;
   }
@@ -34,6 +35,7 @@ public:
 //}
 
 int main(){
+  
   // vector<point> Data = readData();    // массив точек
   // long int n = Data.size();           // число точек
   // double long L = 0;                  // длина пути
@@ -45,10 +47,9 @@ int main(){
   //    L += dist(Data[it], Data[it+1]);
   //  }
   //  catch(...){
-  //    L += disy(Data[it], Data[0]);
-
+  //    L += dist(Data[it], Data[0]);
   vector<double long> x(5), y(5);
-  double long it = 0;
+  long double it = 0;
 
   for(it = 0; it < 5; it++) {
     x[it] = 3 * pow(it, 2);
@@ -63,12 +64,19 @@ int main(){
 
   priority_queue<my_value_t, my_container_t, decltype(my_comp)> path{ my_comp};
 
-  for (it = 0; it < 5l it++){
+  for (it = 0; it < 5;  it++){
     try {
       path.push(Edge(x[it], y[it], x[it+1], y[it+1]));
     }
     catch (...){
-      cout << it;
+      path.push(Edge(x[it], y[it], x[0], y[0]));
     }
+  }
+
+  for (it = 0; it < 5; it++){
+    const Edge maxEdge = path.top();
+    path.pop();
+    Edge e = maxEdge;
+    cout << e.dist_value() << endl;
   }
 }
