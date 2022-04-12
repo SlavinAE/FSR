@@ -4,8 +4,9 @@
 #include <map>
 #include <algorithm>
 #include <cmath>
-
-#define INT_MAX  2147483647
+#include <fstream>
+#include <climits>
+//#define INT_MAX  2147483647
 
 using namespace std;
 
@@ -21,6 +22,7 @@ public:
 bool operator<(const point& l, const point& r){
   return l.x < r.x;  // порядок вершин в мапе нам не важен
 }
+
 
 class Edge {
 private:
@@ -48,22 +50,25 @@ public:
     this->B.x = Bx; this->B.y = By;
   }
   Edge(point _A, point _B) { A = _A; B = _B;}
+  Edge() {};
 };
 
-int main(){
+int  main(){
   
-  int  n = 15, it = 0, jt = 0, kt = 0;
-  long double L = 0;
-  vector<long double> x(n), y(n);
+  long double  n = 0, it = 0, jt = 0, kt = 0;
+  long double  L = 0;
+  cin >> n;
   vector<point> allVerts(n);
+  vector<long double> x(n);
+  vector<long double> y(n);
+  for (it = 0; it < n; it++){
+    cin >> x[it] >> y[it];
+  }  
   for(it = 0; it < n; it++) {
-    x[it] = 3 * pow(it, 2);
-    y[it] = 4 * pow(it, 2);
-
     point A;
     A.x = x[it]; A.y = y[it];
     allVerts[it] = A;
-  }
+   }
 
 
   using my_value_t = Edge;
@@ -86,7 +91,7 @@ int main(){
       status[e.B_value()] = 2;
       L += e.dist_value();
     }
-    catch (long double it){
+    catch (long double  it){
       Edge e(x[it], y[it], x[0], y[0]);
       path.push(e);
       status[e.A_value()] = 2;
@@ -99,7 +104,7 @@ int main(){
   
   long double Lnew = 0;
   vector<Edge> poped(n);
-  for (it = 3; it < n - n % 3; it += 3) {
+  for (it = 3; it < n - 3; it += 3) {
         //cout << "Starting new cicle. it " << it << endl;
 
         // удалим ребра [0; it)
@@ -160,4 +165,5 @@ int main(){
         //cout << "now L is " << L << endl;
     }
     cout << L;   //посмотрим насколько хорошо работает сейчас
+    return 0;
 }
