@@ -82,6 +82,13 @@ int main()
         cout << "demand:" << dest[i].demand << " x:" << dest[i].x << " y:" << dest[i].y << " already delivered:" << dest[i].delivered << " completed:" << dest[i].completed << endl;
     }
 
+    
+    double sumLoad = V * capacity;
+    double sumDemand = 0;
+    for (int i = 0; i < N; i++) {
+        sumDemand += dest[i].demand;
+    }
+    double res = (sumLoad - sumDemand) / V;
 
     double price = 0;
 
@@ -90,7 +97,7 @@ int main()
         cout << endl << endl << "VEHICLE " << i << endl;
         vehicle v(capacity);
 
-        while (v.load > 0 && numOfCompleted < N) {    // пока load > 0 и не все вопросы удовлетворены
+        while (v.load > res && numOfCompleted < N) {    // пока load > 0 и не все вопросы удовлетворены
 
             // найдем ближайшую вершину с ненулевым номером, в которой completed == false
             priority_queue<pair<int, double>, vector<pair<int, double>>, decltype(comp)> sortedID{ comp };
